@@ -45,4 +45,9 @@ public class Tower extends ChessPiece{
 	public void setEverMoved(boolean everMoved) {
 		this.everMoved = everMoved;
 	}
+	
+	@Override
+	protected void pieceSpecificMovementBehavior(Position targetPosition) {
+		this.everMoved = true; //When the tower moves this boolean is set to true to prevent castling in the future
+	}
 }

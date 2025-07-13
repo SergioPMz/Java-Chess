@@ -20,6 +20,15 @@ public class ChessBoard{
 	
 	private String turnOf = "white";
 	
+	public ChessBoard(boolean defaultBoard) {
+		if (defaultBoard) {
+			
+			generateDefaultPieces();
+			
+			updateBoard(false);
+		}
+	}
+	
 	/** Method that generates the default pieces for the board
 	 * 
 	 */
@@ -49,15 +58,6 @@ public class ChessBoard{
 		
 		new King(this, new Position('e', '1'), "white");
 		new King(this, new Position('e', '8'), "black");
-	}
-	
-	public ChessBoard(boolean defaultBoard) {
-		if (defaultBoard) {
-			
-			generateDefaultPieces();
-			
-			updateBoard(false);
-		}
 	}
 	
 	public ChessBoard(boolean defaultBoard, boolean hypotheticalBoard) {
@@ -151,12 +151,9 @@ public class ChessBoard{
 	 * @param KingAccounted If the king should be accounted in the update, if set to false it will first update it without taking into 
 	 * account the king and then call the same method with this parameter set to true to update it a second time, otherwise the board might update with unexpected behavior
 	 */
-	public void updateBoard(boolean KingAccounted) {
+	public void updateBoard(boolean AccountKing) {
 		for (ChessPiece chessPiece : getFieldPieces()) {
-			chessPiece.updatePossibleMoves(KingAccounted);
-		}
-		if (!KingAccounted) {
-			updateBoard(true);
+			chessPiece.updatePossibleMoves(AccountKing);
 		}
 	}
 	
@@ -165,32 +162,31 @@ public class ChessBoard{
 	 * put it at risk in order to remove them. This is done by the method updatePossibleMoves in the class ChessPiece
 	 * 
 	 */
-	public ChessBoard clone(){
-		ChessBoard clone = new ChessBoard(false, true);
+	public ChessBoard createHypotheticalBoard(){
+		ChessBoard hypotheticalBoard = new ChessBoard(false, true);
 		
 		for (ChessPiece chessPiece : getFieldPieces()) {
 			ChessPiece newPiece = null;
 			if (chessPiece instanceof Pawn) {
-				newPiece = new Pawn(clone, chessPiece.getPosition().clone(), chessPiece.getColor());
+				newPiece = new Pawn(hypotheticalBoard, chessPiece.getPosition().clone(), chessPiece.getColor());
 			}else if (chessPiece instanceof Tower) {
-				newPiece = new Tower(clone, chessPiece.getPosition().clone(), chessPiece.getColor(), ((Tower) chessPiece).getEverMoved());
+				newPiece = new Tower(hypotheticalBoard, chessPiece.getPosition().clone(), chessPiece.getColor(), ((Tower) chessPiece).getEverMoved());
 			}else if (chessPiece instanceof Bishop) {
-				newPiece = new Bishop(clone, chessPiece.getPosition().clone(), chessPiece.getColor());
+				newPiece = new Bishop(hypotheticalBoard, chessPiece.getPosition().clone(), chessPiece.getColor());
 			}else if (chessPiece instanceof Horse) {
-				newPiece = new Horse(clone, chessPiece.getPosition().clone(), chessPiece.getColor());
+				newPiece = new Horse(hypotheticalBoard, chessPiece.getPosition().clone(), chessPiece.getColor());
 			}else if (chessPiece instanceof Queen) {
-				newPiece = new Queen(clone, chessPiece.getPosition().clone(), chessPiece.getColor());
+				newPiece = new Queen(hypotheticalBoard, chessPiece.getPosition().clone(), chessPiece.getColor());
 			}else if (chessPiece instanceof King) {
-				newPiece = new King(clone, chessPiece.getPosition().clone(), chessPiece.getColor(), ((King) chessPiece).getEverMoved());
+				newPiece = new King(hypotheticalBoard, chessPiece.getPosition().clone(), chessPiece.getColor(), ((King) chessPiece).getEverMoved());
 			}
-			newPiece.clonePreviousPositions(chessPiece.getPreviousPositions());
-		}
-		if (this.lastPieceToMove != null) {
-			clone.setLastPieceToMove(clone.findPiece(this.lastPieceToMove.getPosition()));
+			newPiece.setPreviousPositions(chessPiece.clonePreviousPositions());
 		}
 		
-		clone.updateBoard(false);
-		return clone;
+		if (this.lastPieceToMove != null) hypotheticalBoard.setLastPieceToMove(hypotheticalBoard.findPiece(this.lastPieceToMove.getPosition()));
+		
+		hypotheticalBoard.updateBoard(true);
+		return hypotheticalBoard;
 	}
 	
 	/** Method that finds a piece in the board by position

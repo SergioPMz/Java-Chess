@@ -99,16 +99,15 @@ public class Position{
 	 */
 	public ArrayList<Position> positionsBetween(Position position2){
 		ArrayList <Position> positionsBetween = new ArrayList<Position>();
-		if (this.letter != position2.letter && this.number != position2.number) {
-			throw new InvalidParameterException("The positions must be in the same row or column");
-		}else if (this.number == position2.number) {
+		if (this.letter != position2.letter && this.number != position2.number) throw new InvalidParameterException("The positions must be in the same row or column");
+		else if (this.number == position2.number) {
 			int letterGap = gapAmount(this.getLetter(), position2.getLetter());
 			positionsBetween = positionsLine(RIGHT, letterGap, null, null, true, false);
 		}else {
 			int numberGap = gapAmount(this.getNumber(), position2.getNumber());
 			positionsBetween = positionsLine(UP, numberGap, null, null, true, false);
 		}
-		if (positionsBetween.size()>0) {positionsBetween.removeLast();}
+		if (positionsBetween.size()>0) positionsBetween.removeLast();
 		return positionsBetween;
 	}
 	
@@ -263,6 +262,10 @@ public class Position{
 		}
 	}
 	
-	
-	
+	/** Method that returns true if the position is in the number '1' or '8' 
+	 * 
+	 */
+	public boolean isExternalRow() {
+		return this.getNumber() == '1' || this.getNumber() == '8';
+	}
 }

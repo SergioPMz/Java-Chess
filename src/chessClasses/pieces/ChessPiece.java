@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import chessClasses.ChessBoard;
 import chessClasses.Position;
 
-public abstract class ChessPiece {
+public abstract class ChessPiece{
 	
 	protected ChessBoard board;
 	protected Position position;
@@ -18,9 +18,8 @@ public abstract class ChessPiece {
 	public ChessPiece(ChessBoard board, Position position, String color)  {
 		color = color.strip().toLowerCase();
 		
-		if(!color.equals("white") && !color.equals("black")) {
-			throw new IllegalArgumentException("The color can only be \"white\" or \"black\"");
-		}
+		// Color is a String instead of something like a boolean in case i want to make a game mode with more colors in the future
+		if(!color.equals("white") && !color.equals("black")) throw new InvalidParameterException("The color can only be \"white\" or \"black\"");
 		
 		this.board = board;
 		this.position = position;
@@ -43,7 +42,7 @@ public abstract class ChessPiece {
 	
 	/** Method that updates the piece, resetting its moves and adding what it can do in its current position
 	 * 
-	 * @param KingAccounted A boolean, set it to true if you do not want to take the king into account for possible moves calculations 
+	 * @param KingAccounted A boolean, set it to false if you do not want to take the king into account for possible moves calculations 
 	 */
 	public void updatePossibleMoves(boolean KingAccounted) {
 		this.currentPossibleMoves = possibleMoves();
@@ -53,7 +52,7 @@ public abstract class ChessPiece {
 			positionsLoop:
 				for (int i = currentPossibleMoves.size()-1; i>= 0; i--) {
 					Position position = currentPossibleMoves.get(i);
-					ChessBoard clonedBoard = board.clone();
+					ChessBoard clonedBoard = board.createHypotheticalBoard();
 					clonedBoard.findPiece(this.position).move(position);
 					
 					Position allyKingPosition = clonedBoard.findKing(color).getPosition();
@@ -70,70 +69,31 @@ public abstract class ChessPiece {
 	/** Method that moves the piece to the specified position, updating the board afterwards calling board.updateBoard(false) and changing the color turn
 	 * 
 	 */
-	public void move(Position position) {
+	public void move(Position targetPosition) {
 		boolean validMove = false;
-		for (Position possiblePosition : currentPossibleMoves) {
-			if (position.equals(possiblePosition)) validMove = true;
-		}
-		if (!validMove) {
-			throw new InvalidParameterException("This piece cannot move to this position"); //If the move is not among the valid moves it throws this exception
-		}
+		for (Position possiblePosition : currentPossibleMoves) if (targetPosition.equals(possiblePosition)) validMove = true;
+		if (!validMove) throw new InvalidParameterException("This piece cannot move to this position");
 		
-		ChessPiece targetPositionPiece = board.findPiece(position);
-		if (targetPositionPiece != null) {
-			board.killPiece(targetPositionPiece); //If there is a piece in the position we are trying to move it must mean it is an enemy and it has to be killed
-		}
+		//If there is a piece in the position we are trying to move it must mean it is an enemy and it has to be killed
+		ChessPiece targetPositionPiece = board.findPiece(targetPosition);
+		if (targetPositionPiece != null) board.killPiece(targetPositionPiece); 
 		
-		if (this instanceof Pawn) { // This code is to kill the enemy piece correctly if the current piece is trying to eat en passant
-			for (int i = 0; i < board.getEnemyPieces(this.color).size(); i++) {
-				ChessPiece targetPiece = board.getEnemyPieces(this.color).get(i);
-				if (targetPiece instanceof Pawn && targetPiece == board.getLastPieceToMove()) { //Checks the enemy piece is a pawn and was the last one to move
-					if (targetPiece.getPreviousPositions().getLast().getNumber() == (targetPiece.color.equals("white") ? '2' : '7') //Checks the enemy pawn was in the starting position
-							&& targetPiece.position.getNumber() == (targetPiece.color.equals("white") ? '4' : '5') //Checks the enemy pawn has moved 2 cells in the last move of the board
-							&& targetPiece.position.jump((targetPiece.color.equals("white") ? -1 : 1), '1').equals(position)) { //Checks the position in between is the position we are trying to move to, which means we are going to eat it
-						board.killPiece(targetPiece);
-						break;
-					}
-				}
-			}
-		}
-		
-		// This code is to make sure castling works as intended, as it has to move the tower as well
-		if(this instanceof King && !((King) this).getEverMoved() && this.position.positionsBetween(position).size() > 0) {
-				Tower towerToCastleWith = null;
-				char towerLetter = 'z'; //value that has no meaning, it is always going to be changed to a letter ranging a-h
-				if (position.getLetter() == 'c') {
-					towerLetter = 'a';
-				}else if (position.getLetter() == 'g') {
-					towerLetter = 'h';
-				}
-				for (Tower tower : board.findTowers(this.color)) {
-					if (!tower.getEverMoved() && tower.position.getLetter() == towerLetter) {
-						towerToCastleWith = tower;
-					}
-				}
-
-				towerToCastleWith.previousPositions.add(towerToCastleWith.position);
-				towerToCastleWith.position = this.position.positionsBetween(position).get(0);
-				towerToCastleWith.setEverMoved(true);
-			}
-		
-		// If it is a king or a tower which are moving it sets the boolean everMoved to true to prevent castling with it
-		if (this instanceof King) {
-			((King) this).setEverMoved(true);
-		}else if (this instanceof Tower){
-			((Tower) this).setEverMoved(true);
-		}
+		pieceSpecificMovementBehavior(targetPosition);
 		
 		this.previousPositions.add(this.position);
-		this.position = position;
-		
+		this.position = targetPosition;
 		board.setLastPieceToMove(this);
-		board.updateBoard(false);
-		board.setTurnOf(this.color.equals("white") ? "black" : "white"); //If the turn was white changes to black and vice versa
+		
+		board.updateBoard(true);
+		board.setTurnOf(this.isWhite() ? "black" : "white"); //If the turn was white changes to black and vice versa
 		
 	}
-
+	
+	/** Method that includes specific behavior when moving of a piece. It should be implemented empty if the piece has no special behavior
+	 * 
+	 */
+	protected abstract void pieceSpecificMovementBehavior(Position targetPosition);
+	
 	public Position getPosition() {
 		return position;
 	}
@@ -146,18 +106,46 @@ public abstract class ChessPiece {
 		this.previousPositions = previousPositions;
 	}
 
-	public void clonePreviousPositions(ArrayList<Position> previousPositions) {
+	public ArrayList<Position> clonePreviousPositions() {
 		ArrayList<Position> clonedPreviousPositions = new ArrayList<Position>();
 		
 		for (Position position : previousPositions) {
-			clonedPreviousPositions.add(position.clone());
+			clonedPreviousPositions.add(position);
 		}
 		
-		this.previousPositions = clonedPreviousPositions;
+		return clonedPreviousPositions;
 	}
 	
 	public String getColor() {
 		return color;
+	}
+	
+	/** Method that returns true if the piece is white and false if not
+	 * 
+	 */
+	public boolean isWhite() {
+		return this.color.equals("white");
+	}
+	
+	/** Method that returns true if the piece is black and false if not
+	 * 
+	 */
+	public boolean isBlack() {
+		return this.color.equals("white");
+	}
+	
+	/** Method that returns true if the piece is in the first row of its color,  being 1 if white or 8 if black
+	 * 
+	 */
+	public boolean isFirstRow() {
+		return position.getNumber() == (isWhite() ? '1' : '8');
+	}
+	
+	/** Method that returns true if the piece is in the last row of its color, being 8 if white or 1 if black
+	 * 
+	 */
+	public boolean isLastRow() {
+		return position.getNumber() == (isWhite() ? 8 : 1);
 	}
 	
 	/** Method that returns the opposite color of the current piece, if the piece is black it will return white and vice versa

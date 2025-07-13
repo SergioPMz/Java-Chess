@@ -22,5 +22,9 @@ public class Bishop extends ChessPiece{
 		
 		return possiblePositions;
 	}
-
+	
+	@Override
+	protected void pieceSpecificMovementBehavior(Position targetPosition) {
+		//This piece has no specific behavior when moving
+	}
 }

@@ -84,5 +84,10 @@ public class Horse extends ChessPiece{
 			return null;
 		}
 	}
-
+	
+	@Override
+	protected void pieceSpecificMovementBehavior(Position targetPosition) {
+		//This piece has no specific behavior when moving
+	}
+	
 }

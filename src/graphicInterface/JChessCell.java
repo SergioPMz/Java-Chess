@@ -94,9 +94,7 @@ public class JChessCell extends JButton implements ActionListener{
 						mainWindow.updateAllCells();
 					}else if (this.currentPiece instanceof Pawn) {
 						mainWindow.updateAllCells();
-						if (targetChessCell.currentPiece.getPosition().getNumber() == '1'||targetChessCell.currentPiece.getPosition().getNumber() == '8') {
-							targetChessCell.crownPawn();
-						}
+						if (targetChessCell.position.isExternalRow()) targetChessCell.crownPawn();
 					}else {
 						mainWindow.updateCells(this, findJChessCell(possibleMove));
 					}

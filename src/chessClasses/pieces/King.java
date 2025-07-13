@@ -69,4 +69,26 @@ public class King extends ChessPiece{
 	public void setEverMoved(boolean everMoved) {
 		this.everMoved = everMoved;
 	}
+
+	@Override
+	protected void pieceSpecificMovementBehavior(Position targetPosition) {
+		
+		// This code is to make sure castling works as intended, as it has to move the tower as well
+		if(!everMoved && targetPosition.isExternalRow() && this.position.positionsBetween(targetPosition).size() > 0) {
+			Tower towerToCastleWith = null;
+			char towerLetter = targetPosition.getLetter() == 'c' ? 'a' : 'h';
+			
+			for (Tower tower : board.findTowers(this.color)) {
+				if (!tower.getEverMoved() && tower.position.getLetter() == towerLetter) {
+					towerToCastleWith = tower;
+					break;
+				}
+			}
+
+			towerToCastleWith.previousPositions.add(towerToCastleWith.position);
+			towerToCastleWith.position = this.position.positionsBetween(targetPosition).get(0);
+			towerToCastleWith.setEverMoved(true);
+		}
+		this.everMoved = true; //When the king moves this boolean is set to true to prevent castling in the future
+	}
 }
