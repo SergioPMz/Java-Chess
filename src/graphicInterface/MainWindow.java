@@ -16,8 +16,8 @@ import chessClasses.ChessBoard;
 import chessClasses.Position;
 import chessClasses.pieces.King;
 
-@SuppressWarnings("serial")
 public class MainWindow extends JFrame{
+	private static final long serialVersionUID = 1L;
 	private JPanel panel;
 	private ChessBoard board;
 	private static final int CELLSIZE = 80;

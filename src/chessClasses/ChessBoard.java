@@ -22,9 +22,7 @@ public class ChessBoard{
 	
 	public ChessBoard(boolean defaultBoard) {
 		if (defaultBoard) {
-			
 			generateDefaultPieces();
-			
 			updateBoard(false);
 		}
 	}
@@ -92,7 +90,7 @@ public class ChessBoard{
 	public void killPiece(ChessPiece piece) {
 		this.cemeteryPieces.add(piece);
 		
-		if (piece.getColor().equals("white")) {
+		if (piece.isWhite()) {
 			this.whitePieces.remove(piece);
 		}else {
 			this.blackPieces.remove(piece);
