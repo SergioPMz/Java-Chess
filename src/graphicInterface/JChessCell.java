@@ -22,9 +22,7 @@ import chessClasses.pieces.Queen;
 import chessClasses.pieces.Tower;
 
 public class JChessCell extends JButton implements ActionListener{
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	
 	private Position position;

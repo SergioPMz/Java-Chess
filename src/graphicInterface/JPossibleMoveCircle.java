@@ -7,9 +7,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 
 public class JPossibleMoveCircle extends JButton implements ActionListener{
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	
 	private int width;
