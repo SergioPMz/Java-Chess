@@ -74,7 +74,7 @@ public class King extends ChessPiece{
 	protected void pieceSpecificMovementBehavior(Position targetPosition) {
 		
 		// This code is to make sure castling works as intended, as it has to move the tower as well
-		if(!everMoved && targetPosition.isExternalRow() && this.position.positionsBetween(targetPosition).size() > 0) {
+		if(!everMoved && ( targetPosition.getLetter() == 'g'||targetPosition.getLetter() == 'c' )) {
 			Tower towerToCastleWith = null;
 			char towerLetter = targetPosition.getLetter() == 'c' ? 'a' : 'h';
 			
